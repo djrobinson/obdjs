@@ -6,20 +6,16 @@ var PORT = 35000;
 
 var client = net.createConnection(PORT, HOST);
 
-// var sample_response = 'BE3FA811';
-
-//Sample 01 01
-//81 07 65 04
+//Sample 01 01:
+// 81 07 65 04
 
 //Sample 03:
 // 48 6B 09 43 04 20 01 39 00 00 5D
 
-// var sample_response = 'BE1FA813';
-
+//Sample 01 00:
+// BE1FA813
 
 var sample_response = '48 6B 09 43 04 20 01 39 00 00 5D';
-
-
 
 function hexToByteArray(hex){
   hex = hex.replace(/\s/g, '');
@@ -47,14 +43,18 @@ function interpretDTCodes(pcodeArray){
     }
     console.log("pcodeArray", pcodeArray);
     var iteratorLimit = pcodeArray.length;
+    var CurrentDTCodes = [];
     for (var i = 0; i < iteratorLimit / 2; i++){
       var pcodeBytes = pcodeArray.slice(i * 2, i * 2 + 2).join('');
-      console.log("Pcode Bytes: ", DTCodeMapper(pcodeBytes));
+      var DTCode = DTCodeMapper(pcodeBytes)
+      if (DTCode){
+        CurrentDTCodes.push(DTCode);
+      }
     }
+    return  CurrentDTCodes;
 }
 
 function DTCodeMapper(twobytestring){
-  console.log("twobyte: ", twobyte);
     var twobyte = twobytestring.split('');
     var firstCharByte = twobyte.slice(0, 2).join('');
     var secondCharByte = twobyte.slice(2, 4).join('');
@@ -99,9 +99,16 @@ function DTCodeMapper(twobytestring){
     var fourthChar = lastCharsMapper[fourthCharByte];
     var fifthChar = lastCharsMapper[fifthCharByte];
 
-    var DTCode = firstChar + secondChar + thirdChar + fourthChar + fifthChar;
-    console.log("Code: ", DTCode);
-    return DTCode;
+    if (!firstChar || !secondChar || !thirdChar || !fourthChar || !fifthChar){
+      return;
+    }
+
+    var Code = firstChar + secondChar + thirdChar + fourthChar + fifthChar;
+    var Summary = codes.pcodes[Code];
+    if (!Summary){
+      return;
+    }
+    return {Code, Summary};
 
 }
 
