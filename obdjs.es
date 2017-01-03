@@ -4,18 +4,20 @@ var codes = require('./pcodes');
 var HOST = '192.168.0.10';
 var PORT = 35000;
 
-var client = net.createConnection(PORT, HOST);
+// var client = net.createConnection(PORT, HOST);
 
 //Sample 01 01:
 // 81 07 65 04
-
 //Sample 03:
 // 48 6B 09 43 04 20 01 39 00 00 5D
-
 //Sample 01 00:
 // BE1FA813
 
 var sample_response = '48 6B 09 43 04 20 01 39 00 00 5D';
+
+function Device() {
+
+}
 
 function hexToByteArray(hex){
   hex = hex.replace(/\s/g, '');
@@ -36,12 +38,12 @@ function hexToByteArray(hex){
   return byteArray;
 }
 
-function interpretDTCodes(pcodeArray){
+function interpretDTCodes(hex){
+    var pcodeArray = hexToByteArray(hex);
     if (pcodeArray[0] === '01001000' && pcodeArray[1] === '01101011'){
       pcodeArray.shift();
       pcodeArray.shift();
     }
-    console.log("pcodeArray", pcodeArray);
     var iteratorLimit = pcodeArray.length;
     var CurrentDTCodes = [];
     for (var i = 0; i < iteratorLimit / 2; i++){
@@ -115,25 +117,43 @@ function DTCodeMapper(twobytestring){
 function Hex2Bin(n){if(!checkHex(n))return 0;return parseInt(n,16).toString(2)}
 function checkHex(n){return/^[0-9A-Fa-f]{1,64}$/.test(n)}
 
-console.log("Tester: ", interpretDTCodes(hexToByteArray(sample_response)));
 
-client.setEncoding('utf-8');
-client.on('connect', function(data){
-  var pcode = '02';
-  console.log("Initialization for Pcode: ", pcode);
-  client.write(pcode + '\r\n\0');
-});
 
-client.on('data', function(data) {
-  console.log('DATA: ' + data);
-  console.log('Hex to String: ' + hexToByteArray(data));
-  // Close the client socket completely
-});
+class Sensor {
+  constructor(shortName, name, code, valueFunc, unit){
+    this.shortName = shortName;
+    this.name = name;
+    this.code = code;
+    this.valueFunc = valueFunc;
+    this.unit = unit;
+  }
+}
 
-// Add a 'close' event handler for the client socket
-client.on('close', function() {
-    console.log('Connection closed');
-});
+var sensors = {
+    'pids': new Sensor("pids", "Supported PIDs", "0100", Hex2Bin, ""),
+    'dtc_status': new Sensor("dtc_status", "Status Since DTC Cleared", "0101", "", ""),
+    'active_dtcs': new Sensor("active_dtcs", "Active DTCs since DTC Cleared", "03",  "interpretDTCodes", "")
+};
+
+console.log("Tester: ", sensors.active_dtcs);
+
+// client.setEncoding('utf-8');
+// client.on('connect', function(data){
+//   var pcode = '02';
+//   console.log("Initialization for Pcode: ", pcode);
+//   client.write(pcode + '\r\n\0');
+// });
+
+// client.on('data', function(data) {
+//   console.log('DATA: ' + data);
+//   console.log('Hex to String: ' + hexToByteArray(data));
+//   // Close the client socket completely
+// });
+
+// // Add a 'close' event handler for the client socket
+// client.on('close', function() {
+//     console.log('Connection closed');
+// });
 
 
 
