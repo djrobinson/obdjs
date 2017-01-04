@@ -15,7 +15,17 @@ var PORT = 35000;
 
 var sample_response = '48 6B 09 43 04 20 01 39 00 00 5D';
 
-function Device() {
+class Device {
+  startupSequence(){
+    client.write('ATZ\r\n\0');
+    client.write('ATE0\r\n\0');
+    client.write('ATH1\r\n\0');
+    client.write('ATL1\r\n\0');
+  }
+
+}
+
+function statusSinceDTCCleared(){
 
 }
 
@@ -137,23 +147,23 @@ var sensors = {
 
 console.log("Tester: ", sensors.active_dtcs);
 
-// client.setEncoding('utf-8');
-// client.on('connect', function(data){
-//   var pcode = '02';
-//   console.log("Initialization for Pcode: ", pcode);
-//   client.write(pcode + '\r\n\0');
-// });
+client.setEncoding('utf-8');
+client.on('connect', function(data){
+  var pcode = '02';
+  console.log("Initialization for Pcode: ", pcode);
+  client.write(pcode + '\r\n\0');
+});
 
-// client.on('data', function(data) {
-//   console.log('DATA: ' + data);
-//   console.log('Hex to String: ' + hexToByteArray(data));
-//   // Close the client socket completely
-// });
+client.on('data', function(data) {
+  console.log('DATA: ' + data);
+  console.log('Hex to String: ' + hexToByteArray(data));
+  // Close the client socket completely
+});
 
-// // Add a 'close' event handler for the client socket
-// client.on('close', function() {
-//     console.log('Connection closed');
-// });
+// Add a 'close' event handler for the client socket
+client.on('close', function() {
+    console.log('Connection closed');
+});
 
 
 
