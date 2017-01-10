@@ -15,17 +15,41 @@ var PORT = 35000;
 
 var sample_response = '48 6B 09 43 04 20 01 39 00 00 5D';
 
-class Device {
-  startupSequence(){
+function startupSequence(){
     client.write('ATZ\r\n\0');
-    client.write('ATE0\r\n\0');
-    client.write('ATH1\r\n\0');
-    client.write('ATL1\r\n\0');
-  }
-
+    setTimeout(client.write('ATE0\r\n\0'), 1000);
+    setTimeout(client.write('ATH1\r\n\0'), 1500);
+    setTimeout(client.write('ATL1\r\n\0'), 2000);
 }
 
-function statusSinceDTCCleared(){
+
+var bitIndexer = ['A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'B7', 'B6', 'B5', 'B4', 'B3', 'B2', 'B1', 'B0', 'C7', 'C6', 'C5', 'C4', 'C3', 'C2', 'C1', 'C0', 'D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'D1', 'D0'];
+
+function bit(pos) {
+  return bitIndexer.indexOf(pos);
+}
+
+function statusSinceDTCCleared(hexArray){
+  var hexstring = hexArray.join('');
+  console.log("MIL: ", hexstring[0]);
+  console.log("DTC_CNT: ", hexstring[1]);
+  console.log("COMPONENTS: ", hexstring[bit('B2')], hexstring[bit('B6')]);
+  console.log("FUEL SYSTEM: ", hexstring[bit('B1')], hexstring[bit('B5')]);
+  console.log("MISFIRE: ", hexstring[bit('B0')], hexstring[bit('B4')]);
+  console.log("EGR SYSTEM: ", hexstring[bit('C7')], hexstring[bit('D7')]);
+  console.log("OXYGEN SENSOR HEATER: ", hexstring[bit('C6')], hexstring[bit('D6')]);
+  console.log("OXYGEN SENSOR: ", hexstring[bit('C5')], hexstring[bit('D5')]);
+  console.log("AC REFRIGERANT: ", hexstring[bit('C4')], hexstring[bit('D4')]);
+  console.log("SECONDARY AIR SYSTEM: ", hexstring[bit('C3')], hexstring[bit('D3')]);
+  console.log("EVAPORATIVE SYSTEM: ", hexstring[bit('C2')], hexstring[bit('D2')]);
+  console.log("HEATED CATALYST: ", hexstring[bit('C1')], hexstring[bit('D1')]);
+  console.log("CATALYST: ", hexstring[bit('C0')], hexstring[bit('D0')]);
+  console.log("EGR / VVT SYSTEM: ", hexstring[bit('C7')], hexstring[bit('D7')]);
+  console.log("PM FILTER MONITORING: ", hexstring[bit('C6')], hexstring[bit('D6')]);
+  console.log("EXHAUST GAS SENSOR: ", hexstring[bit('C5')], hexstring[bit('D5')]);
+  console.log("BOOST PRESSURE: ", hexstring[bit('C4')], hexstring[bit('D4')]);
+  console.log("NOX / SCR MONITOR: ", hexstring[bit('C1')], hexstring[bit('D1')]);
+  console.log("NMHC CATALYST: ", hexstring[bit('C0')], hexstring[bit('D0')]);
 
 }
 
@@ -45,7 +69,16 @@ function hexToByteArray(hex){
     }
     byteArray.push(byteString);
   }
+  console.log("Byte Array: ", byteArray);
   return byteArray;
+}
+
+function decodeMPH(a) {
+  return a;
+}
+
+function decodeRPM(a, b) {
+  return (256 * a + b) / 2;
 }
 
 function interpretDTCodes(hex){
@@ -58,7 +91,7 @@ function interpretDTCodes(hex){
     var CurrentDTCodes = [];
     for (var i = 0; i < iteratorLimit / 2; i++){
       var pcodeBytes = pcodeArray.slice(i * 2, i * 2 + 2).join('');
-      var DTCode = DTCodeMapper(pcodeBytes)
+      var DTCode = DTCodeMapper(pcodeBytes);
       if (DTCode){
         CurrentDTCodes.push(DTCode);
       }
@@ -145,25 +178,25 @@ var sensors = {
     'active_dtcs': new Sensor("active_dtcs", "Active DTCs since DTC Cleared", "03",  "interpretDTCodes", "")
 };
 
-console.log("Tester: ", sensors.active_dtcs);
+console.log("Tester: ", statusSinceDTCCleared(hexToByteArray(sample_response)));
 
-client.setEncoding('utf-8');
-client.on('connect', function(data){
-  var pcode = '02';
-  console.log("Initialization for Pcode: ", pcode);
-  client.write(pcode + '\r\n\0');
-});
+// client.setEncoding('utf-8');
+// client.on('connect', function(data){
+//   var pcode = '02';
+//   console.log("Initialization for Pcode: ", pcode);
+//   client.write(pcode + '\r\n\0');
+// });
 
-client.on('data', function(data) {
-  console.log('DATA: ' + data);
-  console.log('Hex to String: ' + hexToByteArray(data));
-  // Close the client socket completely
-});
+// client.on('data', function(data) {
+//   console.log('DATA: ' + data);
+//   console.log('Hex to String: ' + hexToByteArray(data));
+//   // Close the client socket completely
+// });
 
-// Add a 'close' event handler for the client socket
-client.on('close', function() {
-    console.log('Connection closed');
-});
+// // Add a 'close' event handler for the client socket
+// client.on('close', function() {
+//     console.log('Connection closed');
+// });
 
 
 
