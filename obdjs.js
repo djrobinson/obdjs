@@ -1,10 +1,10 @@
-const net = require('net');
-const codes = require('./pcodes');
+var net = require('net');
+var codes = require('./pcodes');
 
-const HOST = '192.168.0.10';
-const PORT = 35000;
+var HOST = '192.168.0.10';
+var PORT = 35000;
 
-// const client = net.createConnection(PORT, HOST);
+// var client = net.createConnection(PORT, HOST);
 
 //Sample 01 01:
 // 81 07 65 04
@@ -13,9 +13,9 @@ const PORT = 35000;
 //Sample 01 00:
 // BE1FA813
 
-const sample_response = '48 6B 09 43 04 20 01 39 00 00 5D';
+var sample_response = '48 6B 09 43 04 20 01 39 00 00 5D';
 
-const startupSequence = () => {
+function startupSequence(){
     client.write('ATZ\r\n\0');
     setTimeout(client.write('ATE0\r\n\0'), 1000);
     setTimeout(client.write('ATH1\r\n\0'), 1500);
@@ -23,14 +23,14 @@ const startupSequence = () => {
 }
 
 
-const bitIndexer = ['A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'B7', 'B6', 'B5', 'B4', 'B3', 'B2', 'B1', 'B0', 'C7', 'C6', 'C5', 'C4', 'C3', 'C2', 'C1', 'C0', 'D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'D1', 'D0'];
+var bitIndexer = ['A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'B7', 'B6', 'B5', 'B4', 'B3', 'B2', 'B1', 'B0', 'C7', 'C6', 'C5', 'C4', 'C3', 'C2', 'C1', 'C0', 'D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'D1', 'D0'];
 
-const bit = (pos) => {
+function bit(pos) {
   return bitIndexer.indexOf(pos);
 }
 
-const statusSinceDTCCleared = (hexArray) => {
-  const hexstring = hexArray.join('');
+function statusSinceDTCCleared(hexArray){
+  var hexstring = hexArray.join('');
   console.log("MIL: ", hexstring[0]);
   console.log("DTC_CNT: ", hexstring[1]);
   console.log("COMPONENTS: ", hexstring[bit('B2')], hexstring[bit('B6')]);
@@ -53,16 +53,16 @@ const statusSinceDTCCleared = (hexArray) => {
 
 }
 
-const hexToByteArray = (hex) => {
+function hexToByteArray(hex){
   hex = hex.replace(/\s/g, '');
-  const splitHex = hex.match(/.{1,2}/g);
-  const byteArray = [];
+  var splitHex = hex.match(/.{1,2}/g);
+  var byteArray = [];
   for (byte in splitHex) {
-    const byteString = Hex2Bin(splitHex[byte]).toString();
+    var byteString = Hex2Bin(splitHex[byte]).toString();
     if (byteString.length < 8){
-      const discrepancy = byteString.length;
-      for (const i = 0; i < (8 - discrepancy); i++) {
-        const splitBytes = byteString.split('');
+      var discrepancy = byteString.length;
+      for (var i = 0; i < (8 - discrepancy); i++) {
+        var splitBytes = byteString.split('');
         splitBytes.unshift('0');
         byteString = splitBytes.join('');
       }
@@ -73,25 +73,25 @@ const hexToByteArray = (hex) => {
   return byteArray;
 }
 
-const decodeMPH = (a) => {
+function decodeMPH(a) {
   return a;
 }
 
-const decodeRPM = (a, b) => {
+function decodeRPM(a, b) {
   return (256 * a + b) / 2;
 }
 
-const interpretDTCodes = (hex) => {
-    const pcodeArray = hexToByteArray(hex);
+function interpretDTCodes(hex){
+    var pcodeArray = hexToByteArray(hex);
     if (pcodeArray[0] === '01001000' && pcodeArray[1] === '01101011'){
       pcodeArray.shift();
       pcodeArray.shift();
     }
-    const iteratorLimit = pcodeArray.length;
-    const CurrentDTCodes = [];
-    for (const i = 0; i < iteratorLimit / 2; i++){
-      const pcodeBytes = pcodeArray.slice(i * 2, i * 2 + 2).join('');
-      const DTCode = DTCodeMapper(pcodeBytes);
+    var iteratorLimit = pcodeArray.length;
+    var CurrentDTCodes = [];
+    for (var i = 0; i < iteratorLimit / 2; i++){
+      var pcodeBytes = pcodeArray.slice(i * 2, i * 2 + 2).join('');
+      var DTCode = DTCodeMapper(pcodeBytes);
       if (DTCode){
         CurrentDTCodes.push(DTCode);
       }
@@ -99,28 +99,28 @@ const interpretDTCodes = (hex) => {
     return  CurrentDTCodes;
 }
 
-const DTCodeMapper = (twobytestring) => {
-    const twobyte = twobytestring.split('');
-    const firstCharByte = twobyte.slice(0, 2).join('');
-    const secondCharByte = twobyte.slice(2, 4).join('');
-    const thirdCharByte = twobyte.slice(4, 8).join('');
-    const fourthCharByte = twobyte.slice(8, 12).join('');
-    const fifthCharByte = twobyte.slice(12, 16).join('');
-    const firstCharMapper = {
+function DTCodeMapper(twobytestring){
+    var twobyte = twobytestring.split('');
+    var firstCharByte = twobyte.slice(0, 2).join('');
+    var secondCharByte = twobyte.slice(2, 4).join('');
+    var thirdCharByte = twobyte.slice(4, 8).join('');
+    var fourthCharByte = twobyte.slice(8, 12).join('');
+    var fifthCharByte = twobyte.slice(12, 16).join('');
+    var firstCharMapper = {
         '00': 'P',
         '01': 'C',
         '10': 'B',
         '11': 'U'
     };
 
-    const secondCharMapper = {
+    var secondCharMapper = {
         '00':  '0',
         '01':  '1',
         '10':  '2',
         '11':  '3'
     };
 
-    const lastCharsMapper = {
+    var lastCharsMapper = {
         '0000':  '0',
         '0001':  '1',
         '0010':  '2',
@@ -138,18 +138,18 @@ const DTCodeMapper = (twobytestring) => {
         '1110':  'E',
         '1111':  'F'
     };
-    const firstChar = firstCharMapper[firstCharByte];
-    const secondChar = secondCharMapper[secondCharByte];
-    const thirdChar = lastCharsMapper[thirdCharByte];
-    const fourthChar = lastCharsMapper[fourthCharByte];
-    const fifthChar = lastCharsMapper[fifthCharByte];
+    var firstChar = firstCharMapper[firstCharByte];
+    var secondChar = secondCharMapper[secondCharByte];
+    var thirdChar = lastCharsMapper[thirdCharByte];
+    var fourthChar = lastCharsMapper[fourthCharByte];
+    var fifthChar = lastCharsMapper[fifthCharByte];
 
     if (!firstChar || !secondChar || !thirdChar || !fourthChar || !fifthChar){
       return;
     }
 
-    const Code = firstChar + secondChar + thirdChar + fourthChar + fifthChar;
-    const Summary = codes.pcodes[Code];
+    var Code = firstChar + secondChar + thirdChar + fourthChar + fifthChar;
+    var Summary = codes.pcodes[Code];
     if (!Summary){
       return;
     }
@@ -172,21 +172,17 @@ class Sensor {
   }
 }
 
-const sensors = {
+var sensors = {
     'pids': new Sensor("pids", "Supported PIDs", "0100", Hex2Bin, ""),
     'dtc_status': new Sensor("dtc_status", "Status Since DTC Cleared", "0101", "", ""),
     'active_dtcs': new Sensor("active_dtcs", "Active DTCs since DTC Cleared", "03",  "interpretDTCodes", "")
 };
 
-export default test = () => {
-  return "OBDJS";
-}
-
 console.log("Tester: ", statusSinceDTCCleared(hexToByteArray(sample_response)));
 
 // client.setEncoding('utf-8');
 // client.on('connect', function(data){
-//   const pcode = '02';
+//   var pcode = '02';
 //   console.log("Initialization for Pcode: ", pcode);
 //   client.write(pcode + '\r\n\0');
 // });
