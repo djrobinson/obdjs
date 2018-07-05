@@ -1,7 +1,8 @@
 var net = require('net');
 var codes = require('./pcodes');
 
-var HOST = '192.168.0.10';
+// Your elm IP here
+var HOST = '999.999.0.00';
 var PORT = 35000;
 
 // var client = net.createConnection(PORT, HOST);
